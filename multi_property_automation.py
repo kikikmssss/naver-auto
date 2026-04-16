@@ -31,17 +31,10 @@ class MultiPropertyAutomation:
         print(f"🧪 테스트 모드: {self.test_mode}")
 
     def mask_property_name(self, name):
-        """이름 마스킹 (예: 고덕아르테온 307동 1103호 -> 고****온 3**동 1***호)"""
+        """이름 완전 마스킹 (로그/Actions UI 보호용)"""
         if not name or name == "알 수 없음":
             return name
-        parts = name.split()
-        masked_parts = []
-        for part in parts:
-            if len(part) <= 2:
-                masked_parts.append(part[0] + "*" * (len(part)-1) if len(part)>0 else "")
-            else:
-                masked_parts.append(part[0] + "*" * (len(part)-2) + part[-1])
-        return " ".join(masked_parts)
+        return "***"
     
     async def login(self, page):
         """로그인 처리"""
@@ -767,7 +760,7 @@ class MultiPropertyAutomation:
                                         fullname = fullname_text.strip()
                                         if fullname:
                                             self.fullname_mapping[property_number] = fullname
-                                            print(f"   🔖 fullName 저장: {property_number} → {fullname}")
+                                            print(f"   🔖 fullName 저장: {property_number} → {self.mask_property_name(fullname)}")
                                             break
                                 if not fullname:
                                     print(f"   ⚠️ fullName을 찾을 수 없음 (결제 실패 시 재시도 불가)")
@@ -1677,7 +1670,7 @@ class MultiPropertyAutomation:
                                     print(f"   ℹ️ 광고등록 페이지까지 도달하지 못한 경우입니다.")
                                     continue
 
-                                print(f"   🔍 검색할 fullName: {saved_fullname}")
+                                print(f"   🔍 검색할 fullName: {self.mask_property_name(saved_fullname)}")
 
                                 # 매물 리스트 페이지로 이동
                                 await page.goto(self.ad_list_url, timeout=60000, wait_until='domcontentloaded')
@@ -1774,7 +1767,7 @@ class MultiPropertyAutomation:
                                     current_page += 1
 
                                 if not property_found:
-                                    print(f"   ❌ fullName 매칭 실패: {saved_fullname}을(를) 찾을 수 없습니다.")
+                                    print(f"   ❌ fullName 매칭 실패: {self.mask_property_name(saved_fullname)}을(를) 찾을 수 없습니다.")
 
                             elif fail_status == "exposure_ended":
                                 # 노출종료 완료 → 종료매물에서 재시도

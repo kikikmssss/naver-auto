@@ -111,26 +111,8 @@ jobs:
 
         echo "script_exit_code=${exit_code}" >> $GITHUB_OUTPUT
 
-        # 로그에서 매물명 추출하여 마스킹 (Public Repo 로그 보호)
-        # 마스킹 먼저 적용 후 로그 출력 → 이후 출력에 마스킹 적용됨
+        # 로그 출력 (Python에서 이미 *** 완전 마스킹 처리됨)
         if [ -f automation.log ]; then
-          grep -oP '매물명: \K.*' automation.log | sort -u | while read -r name; do
-            if [ -n "$name" ]; then
-              echo "::add-mask::$name"
-            fi
-          done
-          grep -oP 'fullName 저장: [^ ]+ → \K.*' automation.log | sort -u | while read -r name; do
-            if [ -n "$name" ]; then
-              echo "::add-mask::$name"
-            fi
-          done
-          grep -oP 'fullName 매칭 성공: \K.*' automation.log | sort -u | while read -r name; do
-            if [ -n "$name" ]; then
-              echo "::add-mask::$name"
-            fi
-          done
-
-          # 마스킹 선언 후 로그 출력 (이제 매물명이 *** 처리됨)
           echo "--- automation.log ---"
           cat automation.log
         fi
@@ -386,26 +368,19 @@ jobs:
       id: extract_stages
       continue-on-error: true
       run: |
-        if [ -f "./logs/automation.log" ]; then
-          fail_details=""
-
-          while IFS= read -r line; do
-            prop_num=$(echo "$line" | cut -d'|' -f1 | sed 's/FAIL_DETAIL://')
-            prop_name=$(echo "$line" | cut -d'|' -f2)
-            reason=$(echo "$line" | cut -d'|' -f3)
-            fail_details="${fail_details}${prop_num}(${prop_name}/${reason}),\n"
-          done < <(grep "^FAIL_DETAIL:" ./logs/automation.log)
-
+        # email_report.txt에서 실제 매물명 포함 실패 상세 읽기
+        if [ -f "./logs/results/email_report.txt" ]; then
+          fail_details=$(cat "./logs/results/email_report.txt")
           if [ -z "$fail_details" ]; then
             fail_details="상세 정보 없음"
           fi
-
-          echo "stage_details<<EOF" >> $GITHUB_OUTPUT
-          echo -e "${fail_details}" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
         else
-          echo "stage_details=로그 파일 없음" >> $GITHUB_OUTPUT
+          fail_details="상세 정보 없음"
         fi
+
+        echo "stage_details<<EOF" >> $GITHUB_OUTPUT
+        echo "${fail_details}" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
 
     - name: Send email on property failures
       if: always() && steps.workflow_status.outputs.has_property_failures == 'true'
