@@ -395,7 +395,7 @@ jobs:
         to: ${{ secrets.NOTIFY_EMAIL }}
         from: ${{ secrets.NOTIFY_EMAIL }}
         body: |
-          매물 자동화 처리 결과
+          매물광고 자동화 처리 결과
           ========================
           
           실행 시간: ${{ github.event.repository.updated_at }}
