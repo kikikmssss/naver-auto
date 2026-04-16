@@ -1,11 +1,9 @@
 {
-    "created_at": "2026-04-16 11:19:12",
+    "created_at": "2026-04-16 11:20:49",
     "scheduled_for": "다음날 자정 1분 (KST)",
-    "total_count": 3,
+    "total_count": 1,
     "properties": [
-        "2620684563",
-        "2620487560",
-        "2620493805"
+        "2620548775"
     ],
     "status": "pending"
 }
