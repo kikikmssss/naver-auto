@@ -103,15 +103,16 @@ jobs:
         echo "📊 매물 개수: $(echo '${{ steps.properties.outputs.properties }}' | tr ',' '\n' | wc -l)"
         echo "🔧 테스트 모드: ${{ github.event.inputs.test_mode || 'false' }}"
 
-        # Python 스크립트 실행 (exit code 캡처)
+        # Python 스크립트 실행 - 출력을 파일로만 저장 (콘솔 출력 안 함)
         set +e
-        python multi_property_automation.py 2>&1 | tee automation.log
+        python multi_property_automation.py > automation.log 2>&1
         exit_code=$?
         set -e
 
         echo "script_exit_code=${exit_code}" >> $GITHUB_OUTPUT
 
         # 로그에서 매물명 추출하여 마스킹 (Public Repo 로그 보호)
+        # 마스킹 먼저 적용 후 로그 출력 → 이후 출력에 마스킹 적용됨
         if [ -f automation.log ]; then
           grep -oP '매물명: \K.*' automation.log | sort -u | while read -r name; do
             if [ -n "$name" ]; then
@@ -128,6 +129,10 @@ jobs:
               echo "::add-mask::$name"
             fi
           done
+
+          # 마스킹 선언 후 로그 출력 (이제 매물명이 *** 처리됨)
+          echo "--- automation.log ---"
+          cat automation.log
         fi
 
         # 로그인 실패 감지
